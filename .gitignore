@@ -1,0 +1,8 @@
+# Folders ignore
+target
+.idea
+.allure
+
+# Files ignore
+*.iml
+.DS_Store
