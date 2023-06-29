@@ -1,5 +1,13 @@
-package api;
+package api.reqres;
 
+import api.reqres.colors.Data;
+import api.reqres.registration.Register;
+import api.reqres.registration.SuccessReg;
+import api.reqres.registration.UnSuccessReg;
+import api.reqres.users.UserData;
+import api.reqres.users.UserTime;
+import api.reqres.users.UserTimeResponse;
+import api.spec.Specifications;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -9,21 +17,31 @@ import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
 
-public class ReqresTest {
+public class ReqresPojoTest {
     private final static String URL = "https://reqres.in/";
 
+    /**
+     * 1. Получить список пользователей со второй страницы на сайте https://reqres.in/
+     * 2. Убедиться, что id пользователей содержится в их avatar;
+     * 3. Убедиться, что email пользователей имеет окончание reqres.in
+     */
     @Test
     public void checkAvatarAndIdTest() {
         Specifications.installSpecification(Specifications.requestSpec(URL), Specifications.responseSpecOK200());
+        // 1 способ сравнивать значения напрямую из экземпляра класса
         List<UserData> users = given()
                 .when()
                 .get("api/users?page=2")
                 .then().log().all()
                 .extract().body().jsonPath().getList("data", UserData.class);
-        users.forEach(x -> Assertions.assertTrue(x.getAvatar().contains(x.getId().toString())));
 
+        // Проверка avatar содержит id
+        users.forEach(x -> Assertions.assertTrue(x.getAvatar().contains(x.getId().toString())));
+        // Проверка почты. Оканчивается на reqres.in
         Assertions.assertTrue(users.stream().allMatch(x -> x.getEmail().endsWith("@reqres.in")));
 
+        // 2 способ сравнивать значения через получения списков
+        // список с аватарками
         List<String> avatars = users.stream().map(UserData::getAvatar).collect(Collectors.toList());
         List<String> ids = users.stream().map(x -> x.getId().toString()).collect(Collectors.toList());
 
@@ -67,12 +85,12 @@ public class ReqresTest {
     @Test
     public void sortedYearsTest() {
         Specifications.installSpecification(Specifications.requestSpec(URL), Specifications.responseSpecOK200());
-        List<ColorsData> colors = given()
+        List<Data> colors = given()
                 .when()
                 .get("api/unknown")
                 .then().log().all()
-                .extract().body().jsonPath().getList("data", ColorsData.class);
-        List<Integer> years = colors.stream().map(ColorsData::getYear).collect(Collectors.toList());
+                .extract().body().jsonPath().getList("data", Data.class);
+        List<Integer> years = colors.stream().map(Data::getYear).collect(Collectors.toList());
         List<Integer> sortedYears = years.stream().sorted().collect(Collectors.toList());
         Assertions.assertEquals(sortedYears, years);
         System.out.println(years);
